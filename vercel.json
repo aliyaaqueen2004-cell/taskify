@@ -15,23 +15,22 @@
     ],
     "routes": [
         {
-            "src": "/api/(.*)",
+            "src": "^/api/(.*)",
             "dest": "/backend/server.js"
         },
         {
-            "src": "/socket.io/(.*)",
+            "src": "^/socket.io/(.*)",
             "dest": "/backend/server.js"
         },
         {
-            "src": "/assets/(.*)",
-            "dest": "/frontend/dist/assets/$1"
-        },
-        {
-            "src": "/(.*\\.(ico|png|svg|jpg|jpeg|gif|css|js|json|webmanifest))$",
+            "src": "^/(?!frontend/dist/)(.*)",
             "dest": "/frontend/dist/$1"
         },
         {
-            "src": "/(.*)",
+            "handle": "filesystem"
+        },
+        {
+            "src": "^/(.*)",
             "dest": "/frontend/dist/index.html"
         }
     ]
