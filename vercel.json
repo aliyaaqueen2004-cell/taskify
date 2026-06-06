@@ -27,7 +27,6 @@
             "dest": "/frontend/dist/$1"
         }
     ],
-    "framework": "vite",
-    "installCommand": "cd frontend && npm install && cd ../backend && npm install",
-    "buildCommand": "cd frontend && npm run build"
+    "installCommand": "npm run install:all",
+    "buildCommand": "npm run build:all"
 }

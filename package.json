@@ -1,5 +1,9 @@
 {
-  "dependencies": {
-    "vercel": "^54.7.1"
-  }
+    "name": "taskify-monorepo",
+    "version": "1.0.0",
+    "scripts": {
+        "install:all": "cd frontend && npm install && cd ../backend && npm install",
+        "build:all": "cd frontend && npm run build",
+        "dev": "cd frontend && npm run dev"
+    }
 }
