@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: var(--brand-primary);
+  --color-primary-hover: var(--brand-primary-hover);
+  --color-surface-base: var(--surface-base);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-active: var(--surface-active);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-medium: var(--border-medium);
+  --color-input-bg: var(--input-bg);
+}
+
+@layer base {
+  :root {
+    --brand-primary: #2563EB;
+    --brand-primary-hover: #1E40AF;
+    --bg-color: #F7F9FC;
+    --text-color: #1A2C3E;
+    --card-bg: rgba(255, 255, 255, 0.9);
+    --border-color: #E2E8F0;
+    
+    --surface-base: #FFFFFF;
+    --surface-hover: #F1F5F9;
+    --surface-active: #E2E8F0;
+    --text-primary: #1A2C3E;
+    --text-secondary: #4A5B6E;
+    --text-tertiary: #64748B;
+    --border-subtle: #E2E8F0;
+    --border-medium: #CBD5E1;
+    --input-bg: #FFFFFF;
+  }
+
+  :root.dark {
+    --brand-primary: #aa3bff;
+    --brand-primary-hover: #9020e6;
+    --bg-color: #0f111a;
+    --text-color: #e4e4e7;
+    --card-bg: rgba(30, 31, 43, 0.8);
+    --border-color: rgba(255, 255, 255, 0.1);
+
+    --surface-base: #111827;
+    --surface-hover: #1f2937;
+    --surface-active: #374151;
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --text-tertiary: #6b7280;
+    --border-subtle: #1f2937;
+    --border-medium: #374151;
+    --input-bg: #111827;
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Inter', system-ui, sans-serif;
+    margin: 0;
+    padding: 0;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .dark .glass {
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  }
+}
