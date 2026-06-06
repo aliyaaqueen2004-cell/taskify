@@ -1,0 +1,33 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "frontend/**",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "frontend/dist"
+            }
+        },
+        {
+            "src": "backend/server.js",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "/backend/server.js"
+        },
+        {
+            "src": "/socket.io/(.*)",
+            "dest": "/backend/server.js"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/frontend/dist/$1"
+        }
+    ],
+    "framework": "vite",
+    "installCommand": "cd frontend && npm install && cd ../backend && npm install",
+    "buildCommand": "cd frontend && npm run build"
+}
