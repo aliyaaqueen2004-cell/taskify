@@ -4,6 +4,7 @@
     "scripts": {
         "install:all": "cd frontend && npm install && cd ../backend && npm install",
         "build:all": "cd frontend && npm run build",
+        "build": "npm run build:all",
         "dev": "cd frontend && npm run dev"
     }
 }
