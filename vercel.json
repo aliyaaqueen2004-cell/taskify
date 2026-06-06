@@ -1,5 +1,6 @@
 {
     "version": 2,
+    "outputDirectory": "frontend/dist",
     "builds": [
         {
             "src": "frontend/**",
@@ -15,22 +16,23 @@
     ],
     "routes": [
         {
-            "src": "^/api/(.*)",
+            "src": "/api/(.*)",
             "dest": "/backend/server.js"
         },
         {
-            "src": "^/socket.io/(.*)",
+            "src": "/socket.io/(.*)",
             "dest": "/backend/server.js"
         },
         {
-            "src": "^/(?!frontend/dist/)(.*)",
+            "src": "/assets/(.*)",
+            "dest": "/frontend/dist/assets/$1"
+        },
+        {
+            "src": "/(.*\\.(ico|png|svg|jpg|jpeg|gif|css|js|json|webmanifest))$",
             "dest": "/frontend/dist/$1"
         },
         {
-            "handle": "filesystem"
-        },
-        {
-            "src": "^/(.*)",
+            "src": "/(.*)",
             "dest": "/frontend/dist/index.html"
         }
     ]
