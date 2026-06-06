@@ -26,7 +26,5 @@
             "src": "/(.*)",
             "dest": "/frontend/dist/$1"
         }
-    ],
-    "installCommand": "npm run install:all",
-    "buildCommand": "npm run build:all"
+    ]
 }
