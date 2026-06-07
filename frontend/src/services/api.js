@@ -1,7 +1,13 @@
 import axios from 'axios';
 
-// Use the correct backend URL
-const API_URL = 'https://taskify-theta-azure.vercel.app/api/v1';
+// Use dynamic API URL based on host environment
+const API_URL = import.meta.env.VITE_API_URL || (
+  typeof window !== 'undefined'
+    ? (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:5000/api/v1'
+        : `${window.location.origin}/api/v1`)
+    : 'http://localhost:5000/api/v1'
+);
 
 console.log('API URL:', API_URL);
 
