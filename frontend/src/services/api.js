@@ -36,11 +36,10 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('user');
 
-      // Auto-redirect disabled as requested
-      // const isAuthCheck = error.config?.url?.includes('/auth/me');
-      // if (!isAuthCheck && !window.location.pathname.includes('/login')) {
-      //   window.location.href = '/login';
-      // }
+      const isAuthCheck = error.config?.url?.includes('/auth/me');
+      if (!isAuthCheck && !window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
