@@ -25,9 +25,8 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminTasks from './pages/admin/AdminTasks';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useSelector(state => state.auth);
-  if (isLoading) return <LoadingScreen />;
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  // Authentication check disabled as requested
+  return children;
 };
 
 const AdminRoute = ({ children }) => {
@@ -62,7 +61,8 @@ function App() {
   const dispatch = useDispatch();
   
   useEffect(() => {
-    dispatch(checkAuth());
+    // Auth check on load disabled as requested
+    // dispatch(checkAuth());
   }, [dispatch]);
 
   return (
