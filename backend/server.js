@@ -30,7 +30,7 @@ const io = new Server(server, {
     origin: [
       'http://localhost:5173',
       'https://taskify-317y.vercel.app',
-      'https://taskify-34cvf01k-aliyaaquen2004-5723s-projects.vercel.app',
+      'https://taskify-317y-git-main-aliyaaqueen2004-5723s-projects.vercel.app',
       process.env.FRONTEND_URL
     ].filter(Boolean),
     methods: ["GET", "POST"],
