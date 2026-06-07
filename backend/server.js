@@ -153,6 +153,24 @@ app.get("/health", (req, res) => {
   });
 });
 
+app.get("/db-test", async (req, res) => {
+  try {
+    await mongoose.connection.db.admin().ping();
+
+    res.json({
+      success: true,
+      state: mongoose.connection.readyState,
+      message: "MongoDB Connected"
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      state: mongoose.connection.readyState,
+      error: error.message
+    });
+  }
+});
+
 /* =====================================
    ROOT ROUTE
 ===================================== */
