@@ -85,6 +85,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'https://taskify-frontend.vercel.app', // Your frontend will be here
+  'https://taskify-317y.vercel.app', // Add actual frontend URL
   process.env.FRONTEND_URL,
   // Add your actual backend URL for testing
   'https://taskify-theta-azure.vercel.app'
