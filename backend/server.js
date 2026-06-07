@@ -81,32 +81,40 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // CORS Configuration - Updated for Vercel deployment
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
-  'https://taskify-frontend.vercel.app', // Your frontend will be here
-  'https://taskify-317y.vercel.app', // Add actual frontend URL
-  process.env.FRONTEND_URL,
-  // Add your actual backend URL for testing
-  'https://taskify-theta-azure.vercel.app'
-].filter(Boolean);
+app.use((req, res, next) => {
+  // Allow your specific frontend domain
+  const allowedOrigins = [
+    'https://taskify-317y.vercel.app',
+    'https://taskify-317y-git-main-aliyaaqueen2004-5723s-projects.vercel.app',
+    'https://taskify-frontend.vercel.app'
+  ];
+
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin) || origin?.includes('vercel.app')) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, or same-origin)
-    if (!origin) return callback(null, true);
-
-    // Check if origin is allowed (for production, check exact match)
+    // Change this part
     if (process.env.NODE_ENV === 'production') {
-      // In production, only allow specific origins
-      if (allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
+      // Allow ANY vercel.app domain temporarily
+      if (!origin || origin.includes('vercel.app')) {
         callback(null, true);
       } else {
-        console.warn(`Blocked origin: ${origin}`);
         callback(new Error('Not allowed by CORS'));
       }
     } else {
-      // In development, be more permissive
       callback(null, true);
     }
   },
@@ -178,6 +186,17 @@ app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
+
+// Your existing routes
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/tasks', taskRoutes);
+// ... other v1 routes
+
+// ADD THESE ALIAS ROUTES FOR YOUR FRONTEND
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/auth', authRoutes);     // Frontend calls /api/auth
+app.use('/api/tasks', taskRoutes);    // Frontend calls /api/tasks
+// Add other routes as needed
 
 // Error Handling Middlewares
 app.use(notFound);

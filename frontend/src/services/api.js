@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Use the correct backend URL
-const API_URL = 'https://taskify-theta-azure.vercel.app/api';
+const API_URL = 'https://taskify-theta-azure.vercel.app/api/v1';
 
 console.log('API URL:', API_URL);
 
@@ -35,7 +35,7 @@ api.interceptors.response.use(
       console.error('401 Unauthorized - Clearing token');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      
+
       const isAuthCheck = error.config?.url?.includes('/auth/me');
       if (!isAuthCheck && !window.location.pathname.includes('/login')) {
         window.location.href = '/login';
