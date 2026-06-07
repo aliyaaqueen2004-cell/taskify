@@ -42,7 +42,11 @@ api.interceptors.response.use(
       console.error('🔒 401 Unauthorized - Redirecting to login');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+      
+      // Do not force redirect if the 401 came from an initial checkAuth call on load
+      const isAuthCheck = error.config?.url?.includes('/auth/me');
+      
+      if (!isAuthCheck && window.location.pathname !== '/login' && window.location.pathname !== '/register') {
         window.location.href = '/login';
       }
     }

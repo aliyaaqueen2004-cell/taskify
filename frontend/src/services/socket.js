@@ -40,8 +40,19 @@ const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ||
 export const socket = io(SOCKET_URL, {
   withCredentials: true,
   transports: ['polling'],
+  reconnectionAttempts: 3, // Prevent infinite retry loops
 });
 
 socket.on('connect', () => {
   console.log('✅ Socket connected to:', SOCKET_URL);
+});
+
+socket.on('connect_error', (error) => {
+  console.warn('Socket connection error:', error.message);
+  // On Vercel Serverless, Socket.io polling fails with 400 due to statelessness.
+  // We disconnect to prevent an infinite loop of 400 errors.
+  if (error.message.includes('xhr poll error') || error.message.includes('Session ID unknown')) {
+    console.warn('Disconnecting socket to prevent infinite polling on serverless backend.');
+    socket.disconnect();
+  }
 });
