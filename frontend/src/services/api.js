@@ -1,16 +1,9 @@
-// import axios from 'axios';
-
-// const api = axios.create({
-//   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1',
-//   withCredentials: true,
-// });
-
-// export default api;
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Use the correct backend URL
+const API_URL = 'https://taskify-theta-azure.vercel.app/api';
 
-console.log('API URL:', API_URL); // This will help debug
+console.log('API URL:', API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
@@ -27,7 +20,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     } else {
-      console.warn('⚠️ No token found for request:', config.url);
+      console.log('No token found for request:', config.url);
     }
     return config;
   },
@@ -39,14 +32,12 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.error('🔒 401 Unauthorized - Redirecting to login');
+      console.error('401 Unauthorized - Clearing token');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       
-      // Do not force redirect if the 401 came from an initial checkAuth call on load
       const isAuthCheck = error.config?.url?.includes('/auth/me');
-      
-      if (!isAuthCheck && window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+      if (!isAuthCheck && !window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }
     }
