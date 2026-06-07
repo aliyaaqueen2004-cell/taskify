@@ -152,12 +152,11 @@ app.get("/health", (req, res) => {
         : "disconnected",
   });
 });
-
-app.get("/db-test", async (req, res) => {
+app.get("/db-test", (req, res) => {
   res.json({
     readyState: mongoose.connection.readyState,
     host: mongoose.connection.host,
-    name: mongoose.connection.name,
+    database: mongoose.connection.name,
   });
 });
 
