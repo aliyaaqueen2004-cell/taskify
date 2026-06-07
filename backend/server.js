@@ -7,9 +7,8 @@ const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 const { errorHandler, notFound } = require('./middleware/errorMiddleware');
-
-// Import mongoose for health check
-const mongoose = require('mongoose');
+const http = require('http');
+const { Server } = require('socket.io');
 
 // Route Imports
 const authRoutes = require('./routes/authRoutes');
@@ -18,30 +17,60 @@ const aiRoutes = require('./routes/aiRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
+// Initialize Database Connection
+connectDB();
+
 const app = express();
-
-// Initialize Database Connection (with error handling)
-let dbConnected = false;
-try {
-  connectDB();
-  dbConnected = true;
-  console.log('Database connection initiated');
-} catch (error) {
-  console.error('Database connection failed:', error.message);
-}
-
-// IMPORTANT: No Socket.IO on Vercel serverless
-// Comment out ALL Socket.IO code for Vercel deployment
-/*
-const http = require('http');
-const { Server } = require('socket.io');
 const server = http.createServer(app);
-const io = new Server(server, { ... });
-*/
+
+// Socket.io Configuration for Vercel (WebSockets have limitations on Vercel)
+// For production with WebSockets, consider using Pusher or Socket.io with custom server
+const io = new Server(server, {
+  cors: {
+    origin: [
+      'http://localhost:5173',
+      'https://taskify-317y.vercel.app',
+      'https://taskify-34cvf01k-aliyaaquen2004-5723s-projects.vercel.app',
+      process.env.FRONTEND_URL
+    ].filter(Boolean),
+    methods: ["GET", "POST"],
+    credentials: true,
+    transports: ['websocket', 'polling']
+  },
+  // Important for Vercel serverless
+  path: '/socket.io/',
+  serveClient: false,
+  pingTimeout: 60000,
+  pingInterval: 25000
+});
+
+// Setup Socket.io
+io.on('connection', (socket) => {
+  console.log('User connected to socket:', socket.id);
+
+  socket.on('join-workspace', (workspaceId) => {
+    socket.join(workspaceId);
+    console.log(`Socket ${socket.id} joined workspace ${workspaceId}`);
+  });
+
+  socket.on('leave-workspace', (workspaceId) => {
+    socket.leave(workspaceId);
+  });
+
+  socket.on('task-updated', (data) => {
+    socket.to(data.workspaceId).emit('task-changed', data);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
+
+app.set('io', io);
 
 // Security Middlewares
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+  crossOriginResourcePolicy: { policy: "cross-origin" } // Allow cross-origin for Vercel
 }));
 
 // Logging Middleware
@@ -51,22 +80,25 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('combined'));
 }
 
-// CORS Configuration - FIXED for your frontend
+// CORS Configuration - Updated for Vercel deployment
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  'https://taskify-317y.vercel.app',  // Your frontend
-  'https://taskify-frontend.vercel.app',
-  process.env.FRONTEND_URL
+  'https://taskify-frontend.vercel.app', // Your frontend will be here
+  'https://taskify-317y.vercel.app', // Add actual frontend URL
+  process.env.FRONTEND_URL,
+  // Add your actual backend URL for testing
+  'https://taskify-theta-azure.vercel.app'
 ].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl)
+    // Allow requests with no origin (like mobile apps, curl, or same-origin)
     if (!origin) return callback(null, true);
-    
-    // Allow any vercel.app domain in production
+
+    // Check if origin is allowed (for production, check exact match)
     if (process.env.NODE_ENV === 'production') {
+      // In production, only allow specific origins
       if (allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
         callback(null, true);
       } else {
@@ -74,6 +106,7 @@ app.use(cors({
         callback(new Error('Not allowed by CORS'));
       }
     } else {
+      // In development, be more permissive
       callback(null, true);
     }
   },
@@ -83,45 +116,37 @@ app.use(cors({
   exposedHeaders: ['Set-Cookie']
 }));
 
-// Handle preflight requests explicitly
-app.options('*', cors());
-
-// Rate Limiter
+// Rate Limiter - Adjusted for Vercel serverless
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: process.env.NODE_ENV === 'production' ? 200 : 1000,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === 'production' ? 200 : 1000, // Higher limit for production
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: 'Too many requests, please try again later' },
+  message: { message: 'Too many requests from this IP, please try again after 15 minutes' },
   keyGenerator: (req) => {
-    return req.headers['x-forwarded-for'] || req.ip;
+    // Use IP from Vercel's headers if behind proxy
+    return req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   }
 });
 
+// Apply rate limiter to all API endpoints
 app.use('/api', limiter);
-app.use('/api/v1', limiter);
 
 // Request Parsing Middlewares
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '10mb' })); // Increased limit for larger payloads
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Health Check Endpoint (no database dependency)
+// Serve uploaded files (for Vercel, consider using cloud storage like AWS S3)
+app.use('/uploads', express.static('uploads'));
+
+// Health Check Endpoint (useful for Vercel monitoring)
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
-    database: dbConnected && mongoose.connection?.readyState === 1 ? 'connected' : 'disconnected'
-  });
-});
-
-// Simple health check for Vercel
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
-    message: 'Backend is running',
-    timestamp: new Date().toISOString()
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
 
@@ -130,42 +155,44 @@ app.get('/', (req, res) => {
   res.json({
     message: 'AI Task Management API is running...',
     version: '1.0.0',
-    status: 'active',
     endpoints: {
-      health: '/health',
-      api: '/api/v1',
       auth: '/api/v1/auth',
-      tasks: '/api/v1/tasks'
+      tasks: '/api/v1/tasks',
+      ai: '/api/v1/ai',
+      analytics: '/api/v1/analytics',
+      admin: '/api/v1/admin'
     }
   });
 });
 
-// IMPORTANT: Support BOTH /api and /api/v1 routes
+// API Routes - Note: Your routes use /api/v1, not /api
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/tasks', taskRoutes);
 app.use('/api/v1/ai', aiRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/admin', adminRoutes);
 
-// Also support /api route for compatibility with your frontend
+// Also support /api route for compatibility
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Error Handling Middlewares (must be last)
+// Error Handling Middlewares
 app.use(notFound);
 app.use(errorHandler);
 
-// For local development
 const PORT = process.env.PORT || 5000;
+
+// For local development
 if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV}`);
+    console.log(`CORS allowed origins:`, allowedOrigins);
   });
 }
 
-// Export for Vercel serverless
+// Export for Vercel - IMPORTANT
 module.exports = app;
