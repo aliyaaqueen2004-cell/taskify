@@ -77,7 +77,7 @@ app.use(
       }
 
       console.log("Blocked Origin:", origin);
-
+      console.log(" hellllllooooooooooooooooooooooooooooo");
       return callback(new Error("Not allowed by CORS"));
     },
 
