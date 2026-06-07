@@ -194,4 +194,4 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Export for Vercel - IMPORTANT
-module.exports = server;
+module.exports = app;
