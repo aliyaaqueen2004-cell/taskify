@@ -59,54 +59,32 @@ if (process.env.NODE_ENV === "development") {
    CORS CONFIGURATION - COMPLETE FIX
 ===================================== */
 
-// Manual CORS middleware (must be first - handles all responses)
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+  'https://taskify-317y.vercel.app',
+  'https://taskify-317y-git-main-aliyaaqueen2004-5723s-projects.vercel.app',
+  'https://taskify-theta-azure.vercel.app'
+];
 
-  // Allow all these origins
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:3000',
-    'https://taskify-317y.vercel.app',
-    'https://taskify-317y-git-main-aliyaaqueen2004-5723s-projects.vercel.app',
-  ];
-
-  // Check if origin is allowed (or if it's a vercel.app domain)
-  if (!origin || allowedOrigins.includes(origin) || (origin && origin.includes('.vercel.app'))) {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, X-Requested-With, Accept');
-    res.setHeader('Access-Control-Expose-Headers', 'Set-Cookie, Authorization');
-    res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours cache for preflight
-  }
-
-  // Handle preflight OPTIONS request immediately
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
-
-  next();
-});
-
-// Backup CORS middleware
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl)
+    // Allow requests with no origin (like mobile apps, curl, server-to-server)
     if (!origin) return callback(null, true);
 
-    // Allow all Vercel deployments and localhost
-    if (origin.includes('.vercel.app') ||
-      origin.includes('localhost') ||
-      origin.includes('127.0.0.1') ||
-      origin === 'https://taskify-317y.vercel.app' ||
-      origin === 'https://taskify-317y-git-main-aliyaaqueen2004-5723s-projects.vercel.app') {
+    // Allow if it matches allowedOrigins, or is any Vercel deployment, or localhost
+    const isAllowed = allowedOrigins.includes(origin) ||
+                      origin.includes('.vercel.app') ||
+                      origin.includes('localhost') ||
+                      origin.includes('127.0.0.1');
+
+    if (isAllowed) {
       return callback(null, true);
     }
 
-    console.log('Blocked Origin:', origin);
+    console.log('Blocked Origin by CORS:', origin);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
